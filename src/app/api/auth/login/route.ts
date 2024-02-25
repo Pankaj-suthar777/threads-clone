@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       status: 400,
-      message: "Invalid credentials",
+      errors: {
+        email: "Invalid credentials",
+      },
     });
   } catch (error) {
     if (error instanceof errors.E_VALIDATION_ERROR) {

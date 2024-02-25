@@ -6,18 +6,48 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
+  const { status } = useSession();
   const params = useSearchParams();
+  const router = useRouter();
   const [authState, setAuthState] = useState<AuthStateType>({
     email: "",
     password: "",
   });
+  const [errors, setErrors] = useState<AuthErrorType>({});
+  const [loading, setLoading] = useState(false);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
+
+    axios.post("/api/auth/login", authState).then((res) => {
+      setLoading(false);
+      const response = res.data;
+
+      if (response.status === 200) {
+        signIn("credentials", {
+          email: authState.email,
+          password: authState.password,
+          callbackUrl: "/",
+          redirect: true,
+        });
+      } else if (response.status === 400) {
+        setErrors(response.errors);
+      }
+    });
   }
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status]);
+
   return (
     <div className="bg-background">
       <div className="h-screen w-screen flex justify-center items-center">
@@ -43,6 +73,7 @@ const Login = () => {
                   setAuthState({ ...authState, email: e.target.value })
                 }
               />
+              <span className="text-red-400 font-bold">{errors?.email}</span>
             </div>
             <div className="mt-5">
               <Label htmlFor="password">Password</Label>
@@ -54,9 +85,12 @@ const Login = () => {
                   setAuthState({ ...authState, password: e.target.value })
                 }
               />
+              <span className="text-red-400 font-bold">{errors?.password}</span>
             </div>
             <div className="mt-5">
-              <Button className="w-full">Login</Button>
+              <Button disabled={loading} className="w-full">
+                {loading ? "Processing.." : "Login"}
+              </Button>
             </div>
           </form>
           <div className="mt-5">

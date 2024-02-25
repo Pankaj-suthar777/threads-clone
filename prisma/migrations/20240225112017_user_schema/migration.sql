@@ -1,4 +1,6 @@
--- CreateTable
+git remote add origin https://github.com/Pankaj-suthar777/threads-clone.git
+git branch -M main
+git push -u origin main-- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(50) NOT NULL,
